@@ -33,6 +33,7 @@ module.exports = buildSchema(`
 
     type RootMutation {
         createPlayer(playerInput: PlayerInput): Player
+        deletePlayer(playerId: ID!): Player!
     }
 
     schema {

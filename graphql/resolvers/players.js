@@ -37,5 +37,20 @@ module.exports = {
         } catch (err) {
             throw err;
         }
+    },
+    deletePlayer: async (args) => {
+        const checkPlayer = await Player.findOne({_id: args.playerId});
+        if(!checkPlayer) {
+            throw new Error('Player does not exist in database')
+        };
+        try {
+            await Player.deleteOne({_id: args.playerId});
+            const deletedPlayer = {
+                ...checkPlayer._doc
+            };
+            return deletedPlayer;
+        } catch (err) {
+            throw err
+        };
     }
 }
