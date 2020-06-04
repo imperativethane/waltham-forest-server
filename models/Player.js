@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
-const playerSchema = new mongoose.Schema({
+const Schema = mongoose.Schema;
+
+const playerSchema = new Schema({
     name: {
       type: String,
       required: true
@@ -19,7 +21,11 @@ const playerSchema = new mongoose.Schema({
         required: true
     },
     photo: String,
-    information: String
+    information: String,
+    emergencyContact: {
+        type: Schema.Types.ObjectId,
+        ref: 'EmergencyContact'
+        }
 });
 
 module.exports = mongoose.model('Player', playerSchema);

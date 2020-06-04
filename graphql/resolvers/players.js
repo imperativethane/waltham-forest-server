@@ -1,4 +1,21 @@
 const Player = require('../../models/Player');
+const EmergencyContact = require('../../models/EmergencyContact');
+
+const emergencyContact = async emergencyContactId => {
+    try {
+        const emergencyContact = await EmergencyContact.findById(emergencyContactId)
+        return {
+            ...emergencyContact._doc,      
+        };
+    } catch (err) {
+        throw err;
+    }
+};
+
+
+const updateProperty = (args, field) => {
+    return args.playerInput[field] || undefined
+}
 
 module.exports = {
     players: async () => {
@@ -49,6 +66,32 @@ module.exports = {
                 ...checkPlayer._doc
             };
             return deletedPlayer;
+        } catch (err) {
+            throw err
+        };
+    },
+    updatePlayer: async (args) => {
+        try {
+            const updatePlayer = await Player.findOneAndUpdate({_id: args.playerId}, {
+                name: updateProperty(args, 'name'),
+                phoneNumber: updateProperty(args, 'phoneNumber'),
+                email: updateProperty(args, 'email'),
+                addressOne: updateProperty(args, 'addressOne'),
+                addressTwo: updateProperty(args, 'addressTwo'),
+                postcode: updateProperty(args, 'postcode'),
+                position: updateProperty(args, 'position'),
+                photo: updateProperty(args, 'photo'),
+                information: updateProperty(args, 'information'),
+                active: true
+        }, {
+            new: true,
+            omitUndefined: true,
+            useFindAndModify: false
+        });
+            const updatedPlayer = {
+                ...updatePlayer._doc
+            };
+            return updatedPlayer;
         } catch (err) {
             throw err
         };

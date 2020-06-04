@@ -1,7 +1,9 @@
-const playerResolver = require('./players')
+const playerResolver = require('./players');
+const emergencyContactResolver = require('./emergencyContact');
 
 const rootResolver = {
-    ...playerResolver
+    ...playerResolver,
+    ...emergencyContactResolver
 };
 
 module.exports = rootResolver;
