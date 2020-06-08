@@ -1,14 +1,6 @@
 const { buildSchema } = require('graphql');
 
 module.exports = buildSchema(`
-    type EmergencyContact {
-        _id: ID!
-        name: String!
-        phoneNumber: String!
-        relationship: String
-        player: Player!
-    }
-
     type Player {
         _id: ID!
         name: String!
@@ -21,6 +13,22 @@ module.exports = buildSchema(`
         active: Boolean!
         photo: String
         information: String
+        honours: [Honour]
+    }
+
+    type EmergencyContact {
+        _id: ID!
+        name: String!
+        phoneNumber: String!
+        relationship: String
+        player: Player!
+    }
+
+    type Honour {
+        _id: ID!
+        honour: String!
+        season: String!
+        player: Player!
     }
 
     input PlayerInput {
@@ -59,9 +67,15 @@ module.exports = buildSchema(`
         relationship: String
     }
 
+    input HonourInput {
+        honour: String!
+        season: String!
+    }
+
     type RootQuery {
         players: [Player!]!
         playerEmergencyContact(playerId: ID!): EmergencyContact!
+        honours(playerId: ID!): [Honour!]!
     }
 
     type RootMutation {
@@ -71,6 +85,8 @@ module.exports = buildSchema(`
         createEmergencyContact(playerId: ID!, emergencyContactInput: EmergencyContactInput): EmergencyContact!
         deleteEmergencyContact(playerId: ID!): EmergencyContact!
         updateEmergencyContact(playerId: ID!, emergencyContactInput: EmergencyContactUpdate): EmergencyContact!
+        createHonour(playerId: ID!, honourInput: HonourInput): Honour!
+        deleteHonour(honourId: ID!): Honour!
     }
 
     schema {

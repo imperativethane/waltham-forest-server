@@ -1,20 +1,7 @@
 const Player = require('../../models/Player');
-const EmergencyContact = require('../../models/EmergencyContact');
 
-const emergencyContact = async emergencyContactId => {
-    try {
-        const emergencyContact = await EmergencyContact.findById(emergencyContactId)
-        return {
-            ...emergencyContact._doc,      
-        };
-    } catch (err) {
-        throw err;
-    }
-};
-
-
-const updateProperty = (args, field) => {
-    return args.playerInput[field] || undefined
+const updateProperty = (playerInput, field) => {
+    return playerInput[field] || undefined
 }
 
 module.exports = {
@@ -30,17 +17,17 @@ module.exports = {
             throw err;
         }
     },
-    createPlayer: async (args) => {
+    createPlayer: async ({playerInput}) => {
         const player = new Player({
-            name: args.playerInput.name,
-            phoneNumber: args.playerInput.phoneNumber,
-            email: args.playerInput.email,
-            addressOne: args.playerInput.addressOne,
-            addressTwo: args.playerInput.addressTwo,
-            postcode: args.playerInput.postcode,
-            position: args.playerInput.position,
-            photo: args.playerInput.photo,
-            information: args.playerInput.information,
+            name: playerInput.name,
+            phoneNumber: playerInput.phoneNumber,
+            email: playerInput.email,
+            addressOne: playerInput.addressOne,
+            addressTwo: playerInput.addressTwo,
+            postcode: playerInput.postcode,
+            position: playerInput.position,
+            photo: playerInput.photo,
+            information: playerInput.information,
             active: true
         })
         let createdPlayer
@@ -55,13 +42,13 @@ module.exports = {
             throw err;
         }
     },
-    deletePlayer: async (args) => {
-        const checkPlayer = await Player.findOne({_id: args.playerId});
+    deletePlayer: async ({playerId}) => {
+        const checkPlayer = await Player.findOne({_id: playerId});
         if(!checkPlayer) {
             throw new Error('Player does not exist in database')
         };
         try {
-            await Player.deleteOne({_id: args.playerId});
+            await Player.deleteOne({_id: playerId});
             const deletedPlayer = {
                 ...checkPlayer._doc
             };
@@ -70,18 +57,18 @@ module.exports = {
             throw err
         };
     },
-    updatePlayer: async (args) => {
+    updatePlayer: async ({playerId, playerInput}) => {
         try {
-            const updatePlayer = await Player.findOneAndUpdate({_id: args.playerId}, {
-                name: updateProperty(args, 'name'),
-                phoneNumber: updateProperty(args, 'phoneNumber'),
-                email: updateProperty(args, 'email'),
-                addressOne: updateProperty(args, 'addressOne'),
-                addressTwo: updateProperty(args, 'addressTwo'),
-                postcode: updateProperty(args, 'postcode'),
-                position: updateProperty(args, 'position'),
-                photo: updateProperty(args, 'photo'),
-                information: updateProperty(args, 'information'),
+            const updatePlayer = await Player.findOneAndUpdate({_id: playerId}, {
+                name: updateProperty(playerInput, 'name'),
+                phoneNumber: updateProperty(playerInput, 'phoneNumber'),
+                email: updateProperty(playerInput, 'email'),
+                addressOne: updateProperty(playerInput, 'addressOne'),
+                addressTwo: updateProperty(playerInput, 'addressTwo'),
+                postcode: updateProperty(playerInput, 'postcode'),
+                position: updateProperty(playerInput, 'position'),
+                photo: updateProperty(playerInput, 'photo'),
+                information: updateProperty(playerInput, 'information'),
                 active: true
         }, {
             new: true,

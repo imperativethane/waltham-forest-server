@@ -25,7 +25,13 @@ const playerSchema = new Schema({
     emergencyContact: {
         type: Schema.Types.ObjectId,
         ref: 'EmergencyContact'
+    },
+    honours: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Honour'
         }
+    ]
 });
 
 module.exports = mongoose.model('Player', playerSchema);

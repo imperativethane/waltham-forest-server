@@ -1,21 +1,12 @@
 const EmergencyContact = require('../../models/EmergencyContact');
 const Player = require('../../models/Player');
 
-const player = async playerId => {
-    try {
-        const player = await Player.findById(playerId)
-        return {
-            ...player._doc,      
-        };
-    } catch (err) {
-        throw err;
-    }
-};
+const { player, runInTransaction } = require('./merge');
 
 module.exports = {
-    playerEmergencyContact: async args => {
+    playerEmergencyContact: async ({playerId}) => {
         try {
-            const result = await EmergencyContact.findOne({player: args.playerId})
+            const result = await EmergencyContact.findOne({player: playerId})
             return {
                 ...result._doc,
                 player: player.bind(this, result._doc.player)
@@ -25,12 +16,12 @@ module.exports = {
         }
 
     },
-    createEmergencyContact: async args => {
+    createEmergencyContact: async ({playerId, emergencyContactInput}) => {
         const emergencyContact = new EmergencyContact({
-            name: args.emergencyContactInput.name,
-            phoneNumber: args.emergencyContactInput.phoneNumber,
-            relationship: args.emergencyContactInput.relationship,
-            player: args.playerId
+            name: emergencyContactInput.name,
+            phoneNumber: emergencyContactInput.phoneNumber,
+            relationship: emergencyContactInput.relationship,
+            player: playerId
         })
         let createdEmergencyContact
         try {
@@ -45,50 +36,55 @@ module.exports = {
             if (checkContacts) {
                 throw new Error('Player already has an Emergency Contact')
             }
-
-            const result = await emergencyContact.save();
-            createdEmergencyContact = {
-                ...result._doc,
-                player: player.bind(this, result._doc.player)
-            }
-            checkPlayer.emergencyContact = emergencyContact;
-            checkPlayer.save();
-
+            await runInTransaction(async session => {
+                const result = await emergencyContact.save({session: session});
+                createdEmergencyContact = {
+                    ...result._doc,
+                    player: player.bind(this, result._doc.player)
+                }
+                checkPlayer.emergencyContact = emergencyContact;
+                await checkPlayer.save({session: session});
+            });
             return createdEmergencyContact;
         } catch (err) {
             throw err;
         }
     },
-    deleteEmergencyContact: async args => {
+    deleteEmergencyContact: async ({playerId}) => {
         try {
-            const emergencyContact = await EmergencyContact.findOne({player: args.playerId})
+            const emergencyContact = await EmergencyContact.findOne({player: playerId})
             if (!emergencyContact) {
                 throw new Error('This player does not have an emergency contact listed')
             };
-    
-            await EmergencyContact.deleteOne({player: args.playerId})
-            await Player.findOneAndUpdate(
-                { _id: args.playerId }, 
-                { $unset: {emergencyContact: ""} }, 
-                { useFindAndModify: false }
-            );
-    
-            const deletedPlayer = {
-                ...emergencyContact._doc,
-                player: player.bind(this, emergencyContact._doc.player)
-            };
+            let deletedPlayer;
+            await runInTransaction(async session => {
+                await EmergencyContact.deleteOne({player: playerId}, {session: session})
+                await Player.findOneAndUpdate(
+                    { _id: playerId }, 
+                    { $unset: {emergencyContact: ""} }, 
+                    { 
+                        useFindAndModify: false,
+                        session: session
+                    }
+                );
+        
+                deletedPlayer = {
+                    ...emergencyContact._doc,
+                    player: player.bind(this, emergencyContact._doc.player)
+                };
+            });
             return deletedPlayer;
         } catch (err) {
             throw err;
         }
         
     },
-    updateEmergencyContact: async args => {
+    updateEmergencyContact: async ({emergencyContactInput, playerId}) => {
         try {
-            const updateEmergencyContact = await EmergencyContact.findOneAndUpdate({player: args.playerId}, {
-                name: args.emergencyContactInput.name || undefined,
-                phoneNumber: args.emergencyContactInput.phoneNumber || undefined,
-                relationship: args.emergencyContactInput.relationship || undefined
+            const updateEmergencyContact = await EmergencyContact.findOneAndUpdate({player: playerId}, {
+                name: emergencyContactInput.name || undefined,
+                phoneNumber: emergencyContactInput.phoneNumber || undefined,
+                relationship: emergencyContactInput.relationship || undefined
             }, {
                 new: true,
                 omitUndefined: true,
