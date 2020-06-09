@@ -13,7 +13,8 @@ module.exports = buildSchema(`
         active: Boolean!
         photo: String
         information: String
-        honours: [Honour]
+        honours: [Honour!]
+        awards: [Award!]
     }
 
     type EmergencyContact {
@@ -27,6 +28,13 @@ module.exports = buildSchema(`
     type Honour {
         _id: ID!
         honour: String!
+        season: String!
+        player: Player!
+    }
+
+    type Award {
+        _id: ID!
+        award: String!
         season: String!
         player: Player!
     }
@@ -72,10 +80,16 @@ module.exports = buildSchema(`
         season: String!
     }
 
+    input AwardInput {
+        award: String!
+        season: String!
+    }
+
     type RootQuery {
         players: [Player!]!
         playerEmergencyContact(playerId: ID!): EmergencyContact!
         honours(playerId: ID!): [Honour!]!
+        awards(playerId: ID!): [Award!]!
     }
 
     type RootMutation {
@@ -87,6 +101,8 @@ module.exports = buildSchema(`
         updateEmergencyContact(playerId: ID!, emergencyContactInput: EmergencyContactUpdate): EmergencyContact!
         createHonour(playerId: ID!, honourInput: HonourInput): Honour!
         deleteHonour(honourId: ID!): Honour!
+        createAward(playerId: ID!, awardInput: AwardInput): Award!
+        deleteAward(awardId: ID!): Award!
     }
 
     schema {

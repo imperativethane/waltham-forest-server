@@ -31,6 +31,12 @@ const playerSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: 'Honour'
         }
+    ],
+    awards: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Award'
+        }
     ]
 });
 
