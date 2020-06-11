@@ -3,6 +3,10 @@ const Player = require('../../models/Player');
 const EmergencyContact = require('../../models/EmergencyContact');
 const Award = require('../../models/Awards');
 const Honour = require('../../models/Honours');
+const LeagueResult = require('../../models/LeagueResults');
+const Team = require('../../models/Teams');
+
+const { dateToString } = require('../../helpers/date');
 
 const transformData = result => {
     return {
@@ -81,7 +85,62 @@ const runInTransaction = async (mutations) => {
     };
 };
 
+const checkTeam = async teamId => {
+    const checkTeam = await Team.findById(teamId);
+    if (!checkTeam) {
+        throw new Error('This team does not exist in the database');
+    };
+    return checkTeam;
+};
+
+const transformResultData = async leagueResult => {
+    const transformData = {
+        ...leagueResult._doc,
+        homeTeam: team.bind(this, leagueResult._doc.homeTeam),
+        awayTeam: team.bind(this, leagueResult._doc.awayTeam),
+        date: dateToString(leagueResult._doc.date)
+    };
+    console.log(transformData, 'seems to have transformed this data okay')
+    return transformData;
+};
+
+const leagueResults = async leagueResultIds => {
+    try {
+        const leagueResults = await LeagueResult.find({_id: {$in: leagueResultIds}});
+        console.log(leagueResults);
+        return leagueResults.map(leagueResult => {
+            return transformResultData(leagueResult)
+        });
+    } catch (err) {
+        throw err;
+    }
+
+};
+
+const transformTeamData = team => {
+    return {
+        ...team._doc,
+        leagueResults: leagueResults.bind(this, team._doc.leagueResults)
+    };
+};
+
+const team = async teamId => {
+    try {
+        const team = await Team.findById(teamId);
+        console.log(team);
+        return transformTeamData(team);
+    } catch (err) {
+        throw err;
+    }
+
+};
+
 exports.checkPlayer = checkPlayer;
 exports.transformData = transformData;
 exports.player = player;
 exports.runInTransaction = runInTransaction;
+exports.checkTeam = checkTeam;
+exports.transformResultData = transformResultData;
+exports.leagueResults = leagueResults;
+exports.team = team;
+exports.transformTeamData = transformTeamData;

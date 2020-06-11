@@ -39,6 +39,29 @@ module.exports = buildSchema(`
         player: Player!
     }
 
+    type Team {
+        _id: ID!
+        name: String!
+        gamesPlayed: Int!
+        gamesWon: Int!
+        gamesDraw: Int!
+        gamesLost: Int!
+        goalsScored: Int!
+        goalsAgainst: Int!
+        goalDifference: Int!
+        points: Int!
+        leagueResults: [LeagueResult!]
+    }
+
+    type LeagueResult {
+        _id: ID!
+        homeTeam: Team!
+        homeScore: Int!
+        awayTeam: Team!
+        awayScore: Int!
+        date: String!
+    }
+
     input PlayerInput {
         name: String!
         phoneNumber: String
@@ -85,11 +108,25 @@ module.exports = buildSchema(`
         season: String!
     }
 
+    input TeamInput {
+        name: String!
+    }
+
+    input LeagueResultInput {
+        homeTeam: ID!
+        homeScore: Int!
+        awayTeam: ID!
+        awayScore: Int!
+        date: String!
+    }
+
     type RootQuery {
         players: [Player!]!
         playerEmergencyContact(playerId: ID!): EmergencyContact!
         honours(playerId: ID!): [Honour!]!
         awards(playerId: ID!): [Award!]!
+        teams: [Team!]!
+        leagueResults: [LeagueResult!]!
     }
 
     type RootMutation {
@@ -103,6 +140,9 @@ module.exports = buildSchema(`
         deleteHonour(honourId: ID!): Honour!
         createAward(playerId: ID!, awardInput: AwardInput): Award!
         deleteAward(awardId: ID!): Award!
+        createTeam(teamInput: TeamInput): Team!
+        deleteTeam(teamId: ID!): Team!
+        createLeagueResult(leagueResultInput: LeagueResultInput): LeagueResult!
     }
 
     schema {
