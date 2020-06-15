@@ -1,6 +1,8 @@
 const Team = require('../../models/Teams');
+const LeagueResult = require('../../models/LeagueResults');
+const mongoose = require('mongoose');
 
-const { transformTeamData } = require('./merge');
+const { transformTeamData, runInTransaction, deleteLeagueResultData, checkTeam } = require('./merge');
 
 module.exports = {
     teams: async () => {
@@ -43,20 +45,73 @@ module.exports = {
         };
     },
     deleteTeam: async ({teamId}) => {
-        if (teamId === '5ee0b40e896c9222b86f1454') {
-            throw new Error('Cannot delete Waltham Forest from the database');
+        if (teamId === '5ee34d1bc2ac4d68d4fb9a58') {
+            throw new Error('Cannot delete Waltham Forest Utd from the database');
         };
 
         const teamToDelete = await Team.findById(teamId);
         if (!teamToDelete) {
             throw new Error('Team does not exist on the database');
         };
-
+        const leagueResults = teamToDelete.leagueResults;
         try {
-            await Team.findOneAndDelete({_id: teamId});
-            return transformTeamData(teamToDelete);
+            LeagueResult.find({_id: {$in: leagueResults}})
+            .cursor()
+            .eachAsync(async function(leagueResult, i) {
+                if(leagueResult.homeTeam === teamToDelete) {
+                    const awayTeam = await checkTeam(leagueResult.awayTeam);
+                    awayTeam.gamesPlayed -= 1
+                    if (leagueResult.homeScore > leagueResult.awayScore) {
+                        awayTeam.gamesLost -= 1;
+                    } else if (leagueResult.homeScore === leagueResult.awayScore) {
+                        awayTeam.gamesDraw -= 1;
+                        awayTeam.points -= 1;
+                    } else {
+                        awayTeam.gamesWon -= 1;
+                        awayTeam.points -= 3;
+                    };
+                    awayTeam.goalsScored -= leagueResult.awayScore;
+                    awayTeam.goalsAgainst -= leagueResult.homeScore;
+                    awayTeam.goalDifference -= (leagueResult.awayScore - leagueResult.homeScore);
+                    
+                    const awayTeamIndex = awayTeam.leagueResults.indexOf(leagueResult._id);
+                    awayTeam.leagueResults.splice(awayTeamIndex, 1);
+                    let session = await mongoose.startSession();
+                    session.startTransaction();
+                    await awayTeam.save({session: session});
+                    await Team.deleteOne({_id: teamToDelete}, {session: session});
+                    await session.commitTransaction();
+                    session.endSession();
+                } else {
+                    const homeTeam = await checkTeam(leagueResult.homeTeam);
+                    homeTeam.gamesPlayed -= 1
+                    if (leagueResult.homeScore > leagueResult.awayScore) {
+                        homeTeam.gamesWon -= 1;
+                        homeTeam.points -= 3;
+                    } else if (leagueResult.homeScore === leagueResult.awayScore) {
+                        homeTeam.gamesDraw -= 1;
+                        homeTeam.points -= 1;
+                    } else {
+                        homeTeam.gamesLost -= 1;
+                    };
+                    homeTeam.goalsScored -= leagueResult.homeScore;
+                    homeTeam.goalsAgainst -= leagueResult.awayScore;
+                    homeTeam.goalDifference -= (leagueResult.homeScore - leagueResult.awayScore);
+                    
+                    const homeTeamIndex = homeTeam.leagueResults.indexOf(leagueResult._id);
+                    homeTeam.leagueResults.splice(homeTeamIndex, 1);
+                    let session = await mongoose.startSession();
+                    session.startTransaction();
+                    await homeTeam.save({session: session});
+                    await Team.deleteOne({_id: teamToDelete}, {session: session});
+                    await session.commitTransaction();
+                    session.endSession();
+                };
+            });
+            const deletedTeam = transformTeamData(teamToDelete);
+            return deletedTeam;
         } catch (err) {
             throw err;
-        };
+        }
     }
 };

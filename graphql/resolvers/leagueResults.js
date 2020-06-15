@@ -1,6 +1,6 @@
 const LeagueResult = require('../../models/LeagueResults');
 
-const { runInTransaction, checkTeam, transformResultData } = require('./merge');
+const { runInTransaction, checkTeam, transformResultData, deleteLeagueResultData } = require('./merge');
 
 module.exports = {
     leagueResults: async () => {
@@ -14,6 +14,10 @@ module.exports = {
         };
     },
     createLeagueResult: async ({leagueResultInput}) => {
+        if (leagueResultInput.homeTeam === leagueResultInput.awayTeam) {
+            throw new Error('Please select two seperate teams.')
+        };
+
         const homeTeam = await checkTeam(leagueResultInput.homeTeam);
         const awayTeam = await checkTeam(leagueResultInput.awayTeam);
 
@@ -33,7 +37,7 @@ module.exports = {
                 homeTeam.gamesPlayed += 1;
                 awayTeam.gamesPlayed += 1;
 
-                if(leagueResultInput.homeScore > leagueResultInput.awayScore) {
+                if (leagueResultInput.homeScore > leagueResultInput.awayScore) {
                     homeTeam.gamesWon += 1;
                     homeTeam.points += 3;
                     awayTeam.gamesLost += 1;
@@ -66,6 +70,10 @@ module.exports = {
         } catch (err) {
             throw err;
         };
+    },
+    deleteLeagueResult: async ({resultId}) => {
+        const deletedLeagueResult = await deleteLeagueResultData(resultId);
+        return deletedLeagueResult;
     }
 };
 

@@ -100,14 +100,12 @@ const transformResultData = async leagueResult => {
         awayTeam: team.bind(this, leagueResult._doc.awayTeam),
         date: dateToString(leagueResult._doc.date)
     };
-    console.log(transformData, 'seems to have transformed this data okay')
     return transformData;
 };
 
 const leagueResults = async leagueResultIds => {
     try {
         const leagueResults = await LeagueResult.find({_id: {$in: leagueResultIds}});
-        console.log(leagueResults);
         return leagueResults.map(leagueResult => {
             return transformResultData(leagueResult)
         });
@@ -127,7 +125,6 @@ const transformTeamData = team => {
 const team = async teamId => {
     try {
         const team = await Team.findById(teamId);
-        console.log(team);
         return transformTeamData(team);
     } catch (err) {
         throw err;
@@ -144,3 +141,4 @@ exports.transformResultData = transformResultData;
 exports.leagueResults = leagueResults;
 exports.team = team;
 exports.transformTeamData = transformTeamData;
+exports.deleteLeagueResultData = deleteLeagueResultData;

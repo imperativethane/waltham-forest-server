@@ -143,6 +143,7 @@ module.exports = buildSchema(`
         createTeam(teamInput: TeamInput): Team!
         deleteTeam(teamId: ID!): Team!
         createLeagueResult(leagueResultInput: LeagueResultInput): LeagueResult!
+        deleteLeagueResult(resultId: ID!): LeagueResult!
     }
 
     schema {

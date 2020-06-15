@@ -23,7 +23,7 @@ module.exports = {
         try {
             const player = await checkPlayer(playerId);
 
-            const checkContact = await EmergencyContact.findOne({player: args.playerId});
+            const checkContact = await EmergencyContact.findOne({player: playerId});
             if (checkContact) {
                 throw new Error('Player already has an Emergency Contact')
             };
