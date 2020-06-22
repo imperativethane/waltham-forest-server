@@ -141,4 +141,3 @@ exports.transformResultData = transformResultData;
 exports.leagueResults = leagueResults;
 exports.team = team;
 exports.transformTeamData = transformTeamData;
-exports.deleteLeagueResultData = deleteLeagueResultData;

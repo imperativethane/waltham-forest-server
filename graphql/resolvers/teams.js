@@ -2,7 +2,7 @@ const Team = require('../../models/Teams');
 const LeagueResult = require('../../models/LeagueResults');
 const mongoose = require('mongoose');
 
-const { transformTeamData, runInTransaction, deleteLeagueResultData, checkTeam } = require('./merge');
+const { transformTeamData, checkTeam } = require('./merge');
 
 module.exports = {
     teams: async () => {
