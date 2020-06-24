@@ -6,7 +6,6 @@ const appearanceSchema = new Schema({
     leagueResult: {
         type: Schema.Types.ObjectId,
         ref: 'LeagueResults',
-        required: true
     },
     player: {
         type: Schema.Types.ObjectId,

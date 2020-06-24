@@ -1,4 +1,8 @@
 const Player = require('../../models/Player');
+const Appearance = require('../../models/Appearances');
+const LeagueResults = require('../../models/LeagueResults');
+
+const { transformPlayerData, runInTransaction, checkPlayer, leagueResults } = require('./merge');
 
 const updateProperty = (playerInput, field) => {
     return playerInput[field] || undefined
@@ -9,9 +13,7 @@ module.exports = {
         try {
             const players = await Player.find();
             return players.map(player => {
-                return {
-                    ...player._doc
-                }
+                return transformPlayerData(player);
             })
         } catch (err) {
             throw err;
@@ -30,28 +32,38 @@ module.exports = {
             information: playerInput.information,
             active: true
         })
+
         let createdPlayer
-        
         try {
             const result = await player.save();
-            createdPlayer = {
-                ...result._doc
-            };
+            createdPlayer = transformPlayerData(result);
             return createdPlayer;
         } catch (err) {
             throw err;
         }
     },
     deletePlayer: async ({playerId}) => {
-        const checkPlayer = await Player.findOne({_id: playerId});
-        if(!checkPlayer) {
-            throw new Error('Player does not exist in database')
-        };
+        const playerToDelete = await checkPlayer(playerId);
+        const appearances = playerToDelete.appearances;
+
+        let deletedPlayer
         try {
-            await Player.deleteOne({_id: playerId});
-            const deletedPlayer = {
-                ...checkPlayer._doc
-            };
+            await runInTransaction(async session => {
+                await Player.deleteOne({_id: playerId}, {session: session});
+
+                await Appearance.find({_id: {$in: appearances}}, null, {session: session})
+                .cursor()
+                .eachAsync(async (appearance, i) => {
+                    const leagueResult = await LeagueResults.findById(appearance.leagueResult);
+                    const appearanceIndex = leagueResult.appearances.indexOf(appearance._id);
+                    leagueResult.appearances.splice(appearanceIndex, 1);
+                    leagueResult.save();
+                });
+
+                await Appearance.deleteMany({_id: {$in: playerToDelete.appearances}}, {session: session});
+
+                deletedPlayer = transformPlayerData(playerToDelete);
+            });
             return deletedPlayer;
         } catch (err) {
             throw err
@@ -75,9 +87,7 @@ module.exports = {
             omitUndefined: true,
             useFindAndModify: false
         });
-            const updatedPlayer = {
-                ...updatePlayer._doc
-            };
+            const updatedPlayer = transformPlayerData(updatePlayer);
             return updatedPlayer;
         } catch (err) {
             throw err

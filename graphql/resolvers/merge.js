@@ -37,7 +37,8 @@ const transformPlayerData = async player => {
         ...player._doc,
         awards: awards.bind(this, player._doc.awards),
         honours: honours.bind(this, player._doc.honours),
-        emergencyContact: emergencyContact.bind(this, player._doc.emergencyContact)
+        emergencyContact: emergencyContact.bind(this, player._doc.emergencyContact),
+        appearances: appearances.bind(this, player._doc.appearances)
     }
 }
 
@@ -106,12 +107,14 @@ const checkLeagueResult = async leagueResultId => {
     };
     return checkLeagueResult;
 };
+
 const transformResultData = async leagueResult => {
     const transformData = {
         ...leagueResult._doc,
         homeTeam: team.bind(this, leagueResult._doc.homeTeam),
         awayTeam: team.bind(this, leagueResult._doc.awayTeam),
-        date: dateToString(leagueResult._doc.date)
+        date: dateToString(leagueResult._doc.date),
+        appearances: appearances.bind(this, leagueResult._doc.appearances) 
     };
     return transformData;
 };
@@ -160,10 +163,18 @@ const team = async teamId => {
     }
 };
 
+const checkLeagueResultsForNull = (leagueResultData) => {
+    if (leagueResultData === null) {
+        return null;
+    } else {
+        return leagueResult.bind(this, leagueResultData)
+    }
+}
+
 const transformAppearanceData = async appearance => {
     return {
         ...appearance._doc,
-        leagueResult: leagueResult.bind(this, appearance._doc.player),
+        leagueResult: checkLeagueResultsForNull(appearance._doc.leagueResult),
         player: player.bind(this, appearance._doc.player)   
     };
 };
@@ -180,7 +191,7 @@ const appearances = async appearanceIds => {
     try {
         const appearances = await Appearance.find({_id: {$in: appearanceIds}});
         return appearances.map(appearance => {
-            return transformAppearanceData(leagueResult)
+            return transformAppearanceData(appearance)
         });
     } catch (err) {
         throw err;
@@ -190,6 +201,7 @@ const appearances = async appearanceIds => {
 exports.runInTransaction = runInTransaction;
 
 exports.checkPlayer = checkPlayer;
+exports.transformPlayerData = transformPlayerData;
 exports.player = player;
 exports.transformData = transformData;
 

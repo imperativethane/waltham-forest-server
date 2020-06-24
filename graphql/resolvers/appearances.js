@@ -1,21 +1,12 @@
 const Appearance = require('../../models/Appearances');
-const Player = require('../../models/Player');
 const LeagueResults = require('../../models/LeagueResults');
 
-const { checkPlayer, checkLeagueResult, player, leagueResult, runInTransaction, transformAppearanceData, checkAppearance } = require('./merge');
-
-const leagueResultData = (appearance, leagueResultData) => {
-    if (leagueResultData === null) {
-        return null;
-    } else {
-        return leagueResult.bind(this, appearance._doc.leagueResult)
-    }
-}
+const { checkPlayer, checkLeagueResult, runInTransaction, transformAppearanceData, checkAppearance } = require('./merge');
 
 module.exports = {
     playerAppearances: async ({playerId}) => {
         try {
-            checkPlayer(playerId);
+            await checkPlayer(playerId);
             const playerAppearances = await Appearance.find({player: playerId});
             return playerAppearances.map(appearance => {
                 return transformAppearanceData(appearance)
@@ -26,7 +17,7 @@ module.exports = {
     },
     resultAppearances: async ({leagueResultId}) => {
         try {
-            checkLeagueResult(leagueResultId);
+            await checkLeagueResult(leagueResultId);
             const resultAppearances = await Appearance.find({leagueResult: leagueResultId});
             return resultAppearances.map(appearance => {
                 return transformAppearanceData(appearance)
@@ -93,10 +84,8 @@ module.exports = {
     },
     deleteAppearance: async ({appearanceId}) => {
         const appearance = await checkAppearance(appearanceId);
-        console.log(appearance);
         const playerToUpdate = await checkPlayer(appearance.player);
         const leagueResultToUpdate = await LeagueResults.findById(appearance.leagueResult);
-        console.log(leagueResultToUpdate);
 
         let deletedAppearance;
         try {
@@ -113,11 +102,7 @@ module.exports = {
                     await leagueResultToUpdate.save({session: session});
                 }
 
-                deletedAppearance = {
-                    ...appearance._doc,
-                    leagueResult: leagueResultData(appearance, leagueResultToUpdate),
-                    player: player.bind(this, appearance._doc.player)  
-                };
+                deletedAppearance = transformAppearanceData(appearance);
             })
             return deletedAppearance;
         } catch (err) {

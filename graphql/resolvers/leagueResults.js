@@ -1,6 +1,7 @@
 const LeagueResult = require('../../models/LeagueResults');
 
 const { runInTransaction, checkTeam, transformResultData, deleteLeagueResultData, checkLeagueResult } = require('./merge');
+const Appearance = require('../../models/Appearances');
 
 module.exports = {
     leagueResults: async () => {
@@ -76,10 +77,17 @@ module.exports = {
         const homeTeam = await checkTeam(leagueResult.homeTeam);
         const awayTeam = await checkTeam(leagueResult.awayTeam);
 
+        const appearances = leagueResult.appearances;
         let deletedResult;
+        
         try {
             await runInTransaction(async session => {
                 await LeagueResult.findByIdAndDelete(resultId);
+                await Appearance.updateMany(
+                    {_id: {$in: appearances}}, 
+                    {leagueResult: null}, 
+                    {session: session}
+                );
 
                 homeTeam.gamesPlayed -= 1;
                 awayTeam.gamesPlayed -= 1;

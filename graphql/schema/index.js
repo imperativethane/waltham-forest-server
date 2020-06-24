@@ -15,6 +15,7 @@ module.exports = buildSchema(`
         information: String
         honours: [Honour!]
         awards: [Award!]
+        appearances: [Appearance]
     }
 
     type EmergencyContact {
