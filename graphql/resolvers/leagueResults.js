@@ -1,6 +1,6 @@
 const LeagueResult = require('../../models/LeagueResults');
 
-const { runInTransaction, checkTeam, transformResultData, deleteLeagueResultData } = require('./merge');
+const { runInTransaction, checkTeam, transformResultData, deleteLeagueResultData, checkLeagueResult } = require('./merge');
 
 module.exports = {
     leagueResults: async () => {
@@ -72,8 +72,60 @@ module.exports = {
         };
     },
     deleteLeagueResult: async ({resultId}) => {
-        const deletedLeagueResult = await deleteLeagueResultData(resultId);
-        return deletedLeagueResult;
+        const leagueResult = await checkLeagueResult(resultId);
+        // console.log(leagueResult)
+        const homeTeam = await checkTeam(leagueResult.homeTeam);
+        // console.log(homeTeam);
+        const awayTeam = await checkTeam(leagueResult.awayTeam);
+        // console.log(awayTeam);
+
+        let deletedResult;
+        try {
+            await runInTransaction(async session => {
+                await LeagueResult.findByIdAndDelete(resultId);
+
+                homeTeam.gamesPlayed -= 1;
+                awayTeam.gamesPlayed -= 1;
+
+                if (leagueResult.homeScore > leagueResult.awayScore) {
+                    homeTeam.gamesWon -= 1;
+                    homeTeam.points -= 3;
+                    awayTeam.gamesLost -= 1;
+                } else if (leagueResult.homeScore === leagueResult.awayScore) {
+                    homeTeam.gamesDraw -= 1;
+                    homeTeam.points -= 1;
+                    awayTeam.gamesDraw -= 1;
+                    awayTeam.points -= 1;
+                } else {
+                    homeTeam.gamesLost -= 1;
+                    awayTeam.gamesWon -= 1;
+                    awayTeam.points -= 3;
+                };
+
+                homeTeam.goalsScored -= leagueResult.homeScore;
+                homeTeam.goalsAgainst -= leagueResult.awayScore;
+                homeTeam.goalDifference -= (leagueResult.homeScore - leagueResult.awayScore);
+                awayTeam.goalsScored -= leagueResult.awayScore;
+                awayTeam.goalsAgainst -= leagueResult.homeScore;
+                awayTeam.goalDifference -= (leagueResult.awayScore - leagueResult.homeScore);
+
+                const homeTeamIndex = homeTeam.leagueResults.indexOf(leagueResult._id);
+                console.log(homeTeamIndex);
+                homeTeam.leagueResults.splice(homeTeamIndex, 1);
+
+                const awayTeamIndex = awayTeam.leagueResults.indexOf(leagueResult._id);
+                console.log(awayTeamIndex);
+                awayTeam.leagueResults.splice(awayTeamIndex, 1);
+
+                await homeTeam.save({session: session});
+                await awayTeam.save({session: session});
+
+                deletedResult = transformResultData(leagueResult);
+            })
+            return deletedResult;
+        } catch (err) {
+            throw err;
+        }
     }
 };
 
