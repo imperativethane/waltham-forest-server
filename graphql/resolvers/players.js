@@ -2,11 +2,7 @@ const Player = require('../../models/Player');
 const Appearance = require('../../models/Appearances');
 const LeagueResults = require('../../models/LeagueResults');
 
-const { transformPlayerData, runInTransaction, checkPlayer, leagueResults } = require('./merge');
-
-const updateProperty = (playerInput, field) => {
-    return playerInput[field] || undefined
-}
+const { transformPlayerData, runInTransaction, checkPlayer} = require('./merge');
 
 module.exports = {
     players: async () => {
@@ -57,7 +53,7 @@ module.exports = {
                     const leagueResult = await LeagueResults.findById(appearance.leagueResult);
                     const appearanceIndex = leagueResult.appearances.indexOf(appearance._id);
                     leagueResult.appearances.splice(appearanceIndex, 1);
-                    leagueResult.save();
+                    await leagueResult.save();
                 });
 
                 await Appearance.deleteMany({_id: {$in: playerToDelete.appearances}}, {session: session});
@@ -72,15 +68,15 @@ module.exports = {
     updatePlayer: async ({playerId, playerInput}) => {
         try {
             const updatePlayer = await Player.findOneAndUpdate({_id: playerId}, {
-                name: updateProperty(playerInput, 'name'),
-                phoneNumber: updateProperty(playerInput, 'phoneNumber'),
-                email: updateProperty(playerInput, 'email'),
-                addressOne: updateProperty(playerInput, 'addressOne'),
-                addressTwo: updateProperty(playerInput, 'addressTwo'),
-                postcode: updateProperty(playerInput, 'postcode'),
-                position: updateProperty(playerInput, 'position'),
-                photo: updateProperty(playerInput, 'photo'),
-                information: updateProperty(playerInput, 'information'),
+                name: playerInput.name,
+                phoneNumber: playerInput.phoneNumber,
+                email: playerInput.email,
+                addressOne: playerInput.addressOne,
+                addressTwo: playerInput.addressTwo,
+                postcode: playerInput.postcode,
+                position: playerInput.position,
+                photo: playerInput.photo,
+                information: playerInput.information,
                 active: true
         }, {
             new: true,
