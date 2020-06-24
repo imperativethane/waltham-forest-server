@@ -65,7 +65,7 @@ module.exports = buildSchema(`
 
     type Appearance {
         _id: ID!
-        leagueResult: LeagueResult!
+        leagueResult: LeagueResult
         player: Player!
         starter: Boolean!
         substitute: Boolean!
@@ -193,7 +193,7 @@ module.exports = buildSchema(`
         deleteLeagueResult(resultId: ID!): LeagueResult!
         createAppearance(appearanceInput: AppearanceInput): Appearance!
         updateAppearance(appearanceId: ID! appearanceInput: AppearanceUpdate): Appearance!
-        deleteAppearance(appearanceId: ID!) Appearance!
+        deleteAppearance(appearanceId: ID!): Appearance!
     }
 
     schema {

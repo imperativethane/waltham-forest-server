@@ -5,6 +5,7 @@ const Award = require('../../models/Awards');
 const Honour = require('../../models/Honours');
 const LeagueResult = require('../../models/LeagueResults');
 const Team = require('../../models/Teams');
+const Appearance = require('../../models/Appearances');
 
 const { dateToString } = require('../../helpers/date');
 
@@ -133,7 +134,6 @@ const leagueResults = async leagueResultIds => {
     } catch (err) {
         throw err;
     }
-
 };
 
 const checkTeam = async teamId => {
@@ -158,7 +158,33 @@ const team = async teamId => {
     } catch (err) {
         throw err;
     }
+};
 
+const transformAppearanceData = async appearance => {
+    return {
+        ...appearance._doc,
+        leagueResult: leagueResult.bind(this, appearance._doc.player),
+        player: player.bind(this, appearance._doc.player)   
+    };
+};
+
+const checkAppearance = async appearanceId => {
+    const appearance = await Appearance.findById(appearanceId);
+    if (!appearance) {
+        throw new Error('This appearance does not exist on the database.')
+    };
+    return appearance;
+};
+
+const appearances = async appearanceIds => {
+    try {
+        const appearances = await Appearance.find({_id: {$in: appearanceIds}});
+        return appearances.map(appearance => {
+            return transformAppearanceData(leagueResult)
+        });
+    } catch (err) {
+        throw err;
+    }
 };
 
 exports.runInTransaction = runInTransaction;
@@ -167,12 +193,15 @@ exports.checkPlayer = checkPlayer;
 exports.player = player;
 exports.transformData = transformData;
 
-exports.checkTeam = checkTeam;
-exports.transformTeamData = transformTeamData;
-exports.team = team;
-
 exports.checkLeagueResult = checkLeagueResult;
 exports.transformResultData = transformResultData;
 exports.leagueResult = leagueResult;
 exports.leagueResults = leagueResults;
+
+exports.checkTeam = checkTeam;
+exports.transformTeamData = transformTeamData;
+exports.team = team;
+
+exports.transformAppearanceData = transformAppearanceData;
+exports.checkAppearance = checkAppearance;
 

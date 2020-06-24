@@ -73,11 +73,8 @@ module.exports = {
     },
     deleteLeagueResult: async ({resultId}) => {
         const leagueResult = await checkLeagueResult(resultId);
-        // console.log(leagueResult)
         const homeTeam = await checkTeam(leagueResult.homeTeam);
-        // console.log(homeTeam);
         const awayTeam = await checkTeam(leagueResult.awayTeam);
-        // console.log(awayTeam);
 
         let deletedResult;
         try {
@@ -110,11 +107,9 @@ module.exports = {
                 awayTeam.goalDifference -= (leagueResult.awayScore - leagueResult.homeScore);
 
                 const homeTeamIndex = homeTeam.leagueResults.indexOf(leagueResult._id);
-                console.log(homeTeamIndex);
                 homeTeam.leagueResults.splice(homeTeamIndex, 1);
 
                 const awayTeamIndex = awayTeam.leagueResults.indexOf(leagueResult._id);
-                console.log(awayTeamIndex);
                 awayTeam.leagueResults.splice(awayTeamIndex, 1);
 
                 await homeTeam.save({session: session});

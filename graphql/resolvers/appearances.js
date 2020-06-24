@@ -1,23 +1,16 @@
 const Appearance = require('../../models/Appearances');
 const Player = require('../../models/Player');
+const LeagueResults = require('../../models/LeagueResults');
 
-const { checkPlayer, checkLeagueResult, player, leagueResult, runInTransaction } = require('./merge');
+const { checkPlayer, checkLeagueResult, player, leagueResult, runInTransaction, transformAppearanceData, checkAppearance } = require('./merge');
 
-const transformAppearanceData = async appearance => {
-    return {
-        ...appearance._doc,
-        leagueResult: leagueResult.bind(this, appearance._doc.leagueResult),
-        player: player.bind(this, appearance._doc.player)   
-    };
-};
-
-const checkAppearance = async appearanceId => {
-    const appearance = await Appearance.findById(appearanceId);
-    if (!appearance) {
-        throw new Error('This appearance does not exist on the database.')
-    };
-    return appearance;
-};
+const leagueResultData = (appearance, leagueResultData) => {
+    if (leagueResultData === null) {
+        return null;
+    } else {
+        return leagueResult.bind(this, appearance._doc.leagueResult)
+    }
+}
 
 module.exports = {
     playerAppearances: async ({playerId}) => {
@@ -99,21 +92,34 @@ module.exports = {
         };
     },
     deleteAppearance: async ({appearanceId}) => {
-        //Check if the appearance exists on the database. 
-        //If it exists then it needs to be deleted from the appearance collection.
-        //It also needs to be removed from the Players.appearances and LeagueResults.appearances arrays.
-        const appearanceToDelete = await checkAppearance(appearanceId);
-        const player = await checkPlayer(appearanceToDelete.player);
-        const leagueResult = await checkLeagueResult(appearanceToDelete.leagueResult);
+        const appearance = await checkAppearance(appearanceId);
+        console.log(appearance);
+        const playerToUpdate = await checkPlayer(appearance.player);
+        const leagueResultToUpdate = await LeagueResults.findById(appearance.leagueResult);
+        console.log(leagueResultToUpdate);
+
+        let deletedAppearance;
         try {
-            runInTransaction(async session => {
+            await runInTransaction(async session => {
                 await Appearance.findByIdAndDelete(appearanceId, {session: session});
-                const playerIndex = player.appearances.indexOf(apperanceId);
-                player.splice(playerIndex, 1);
-                await player.save({session: session});
+                
+                const playerIndex = playerToUpdate.appearances.indexOf(appearance._id);
+                playerToUpdate.appearances.splice(playerIndex, 1);
+                await playerToUpdate.save({session: session});
 
+                if (leagueResultToUpdate) {
+                    const leagueResultIndex = leagueResultToUpdate.appearances.indexOf(appearance._id);
+                    leagueResultToUpdate.appearances.splice(leagueResultIndex, 1);
+                    await leagueResultToUpdate.save({session: session});
+                }
 
+                deletedAppearance = {
+                    ...appearance._doc,
+                    leagueResult: leagueResultData(appearance, leagueResultToUpdate),
+                    player: player.bind(this, appearance._doc.player)  
+                };
             })
+            return deletedAppearance;
         } catch (err) {
             throw err;
         }
