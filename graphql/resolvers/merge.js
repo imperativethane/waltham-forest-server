@@ -8,10 +8,18 @@ const Team = require('../../models/Teams');
 
 const { dateToString } = require('../../helpers/date');
 
-const transformData = result => {
-    return {
-        ...result._doc,
-        player: player.bind(this, result._doc.player)
+const runInTransaction = async (mutations) => {
+    let session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        const value = await mutations(session);
+        await session.commitTransaction();
+        return value;
+    } catch (err) {
+        await session.abortTransaction();
+        throw err;
+    } finally {
+        session.endSession();
     };
 };
 
@@ -21,6 +29,42 @@ const checkPlayer = async playerId => {
         throw new Error('Player does not exist on the database')
     };
     return checkPlayer
+};
+
+const transformPlayerData = async player => {
+    return {
+        ...player._doc,
+        awards: awards.bind(this, player._doc.awards),
+        honours: honours.bind(this, player._doc.honours),
+        emergencyContact: emergencyContact.bind(this, player._doc.emergencyContact)
+    }
+}
+
+const player = async playerId => {
+    try {
+        const player = await Player.findById(playerId);
+        return transformPlayerData(player);
+    } catch (err) {
+        throw err;
+    };
+};
+
+const players = async playerIds => {
+    try {
+        const players = await Player.find({_id: {$in: playerIds}});
+        return players.map(player => {
+            return transformPlayerData(player)
+        });
+    } catch (err) {
+        throw err;
+    };
+};
+
+const transformData = result => {
+    return {
+        ...result._doc,
+        player: player.bind(this, result._doc.player)
+    };
 };
 
 const awards = async awardIds => {
@@ -54,45 +98,13 @@ const emergencyContact = async emergencyContactId => {
     };
 };
 
-const player = async playerId => {
-    try {
-        const player = await Player.findById(playerId);
-        return {
-            ...player._doc,
-            awards: awards.bind(this, player._doc.awards),
-            honours: honours.bind(this, player._doc.honours),
-            emergencyContact: emergencyContact.bind(this, player._doc.emergencyContact)
-        };
-    } catch (err) {
-        throw err;
+const checkLeagueResult = async leagueResultId => {
+    const checkLeagueResult = await LeagueResult.findById(leagueResultId);
+    if (!checkLeagueResult) {
+        throw new Error('This result does not exist in the database');
     };
+    return checkLeagueResult;
 };
-
-
-
-const runInTransaction = async (mutations) => {
-    let session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-        const value = await mutations(session);
-        await session.commitTransaction();
-        return value;
-    } catch (err) {
-        await session.abortTransaction();
-        throw err;
-    } finally {
-        session.endSession();
-    };
-};
-
-const checkTeam = async teamId => {
-    const checkTeam = await Team.findById(teamId);
-    if (!checkTeam) {
-        throw new Error('This team does not exist in the database');
-    };
-    return checkTeam;
-};
-
 const transformResultData = async leagueResult => {
     const transformData = {
         ...leagueResult._doc,
@@ -101,6 +113,15 @@ const transformResultData = async leagueResult => {
         date: dateToString(leagueResult._doc.date)
     };
     return transformData;
+};
+
+const leagueResult = async leagueResultId => {
+    try {
+        const leagueResult = await LeagueResult.findById(leagueResultId);
+        return transformResultData(leagueResult);
+    } catch (err) {
+        throw err;
+    };
 };
 
 const leagueResults = async leagueResultIds => {
@@ -113,6 +134,14 @@ const leagueResults = async leagueResultIds => {
         throw err;
     }
 
+};
+
+const checkTeam = async teamId => {
+    const checkTeam = await Team.findById(teamId);
+    if (!checkTeam) {
+        throw new Error('This team does not exist in the database');
+    };
+    return checkTeam;
 };
 
 const transformTeamData = team => {
@@ -132,12 +161,18 @@ const team = async teamId => {
 
 };
 
-exports.checkPlayer = checkPlayer;
-exports.transformData = transformData;
-exports.player = player;
 exports.runInTransaction = runInTransaction;
+
+exports.checkPlayer = checkPlayer;
+exports.player = player;
+exports.transformData = transformData;
+
 exports.checkTeam = checkTeam;
-exports.transformResultData = transformResultData;
-exports.leagueResults = leagueResults;
-exports.team = team;
 exports.transformTeamData = transformTeamData;
+exports.team = team;
+
+exports.checkLeagueResult = checkLeagueResult;
+exports.transformResultData = transformResultData;
+exports.leagueResult = leagueResult;
+exports.leagueResults = leagueResults;
+

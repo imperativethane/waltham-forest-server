@@ -4,6 +4,7 @@ const honoursResolver = require('./honours');
 const awardsResolver = require('./awards');
 const teamsResolver = require('./teams');
 const leagueResultsResolver = require('./leagueResults');
+const appearancesResolver = require('./appearances');
 
 const rootResolver = {
     ...playerResolver,
@@ -11,7 +12,8 @@ const rootResolver = {
     ...honoursResolver,
     ...awardsResolver,
     ...teamsResolver,
-    ...leagueResultsResolver
+    ...leagueResultsResolver,
+    ...appearancesResolver
 };
 
 module.exports = rootResolver;

@@ -37,6 +37,12 @@ const playerSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: 'Award'
         }
+    ], 
+    appearances: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Appearance'
+        }
     ]
 });
 

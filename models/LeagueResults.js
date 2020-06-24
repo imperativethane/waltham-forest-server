@@ -24,7 +24,13 @@ const leagueResultSchema = new Schema({
     date: {
         type: Date,
         required: true
-    }
+    },
+    appearances: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Appearance'
+        }
+    ]
 });
 
 module.exports = mongoose.model('LeagueResult', leagueResultSchema);

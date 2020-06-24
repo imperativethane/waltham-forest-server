@@ -60,6 +60,23 @@ module.exports = buildSchema(`
         awayTeam: Team!
         awayScore: Int!
         date: String!
+        appearances: [Appearance!]
+    }
+
+    type Appearance {
+        _id: ID!
+        leagueResult: LeagueResult!
+        player: Player!
+        starter: Boolean!
+        substitute: Boolean!
+        goalsScored: Int!
+        assists: Int!
+        yellowCard: Boolean!
+        redCard: Boolean!
+        penaltyScored: Int!
+        penaltyMissed: Int!
+        penaltyConceded: Int!
+        manOfTheMatch: Boolean!
     }
 
     input PlayerInput {
@@ -120,6 +137,34 @@ module.exports = buildSchema(`
         date: String!
     }
 
+    input AppearanceInput {
+        leagueResult: ID!
+        player: ID!
+        starter: Boolean
+        substitute: Boolean
+        goalsScored: Int
+        assists: Int
+        yellowCard: Boolean
+        redCard: Boolean
+        penaltyScored: Int
+        penaltyMissed: Int
+        penaltyConceded: Int
+        manOfTheMatch: Boolean
+    }
+
+    input AppearanceUpdate {
+        starter: Boolean
+        substitute: Boolean
+        goalsScored: Int
+        assists: Int
+        yellowCard: Boolean
+        redCard: Boolean
+        penaltyScored: Int
+        penaltyMissed: Int
+        penaltyConceded: Int
+        manOfTheMatch: Boolean
+    }
+
     type RootQuery {
         players: [Player!]!
         playerEmergencyContact(playerId: ID!): EmergencyContact!
@@ -127,6 +172,8 @@ module.exports = buildSchema(`
         awards(playerId: ID!): [Award!]!
         teams: [Team!]!
         leagueResults: [LeagueResult!]!
+        playerAppearances(playerId: ID!): [Appearance!]!
+        resultAppearances(resultId: ID!): [Appearance!]!
     }
 
     type RootMutation {
@@ -144,6 +191,9 @@ module.exports = buildSchema(`
         deleteTeam(teamId: ID!): Team!
         createLeagueResult(leagueResultInput: LeagueResultInput): LeagueResult!
         deleteLeagueResult(resultId: ID!): LeagueResult!
+        createAppearance(appearanceInput: AppearanceInput): Appearance!
+        updateAppearance(appearanceId: ID! appearanceInput: AppearanceUpdate): Appearance!
+        deleteAppearance(appearanceId: ID!) Appearance!
     }
 
     schema {
