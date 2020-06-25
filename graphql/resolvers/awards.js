@@ -15,20 +15,23 @@ module.exports = {
         }
     },
     createAward: async ({playerId, awardInput}) => {
+        const player = await checkPlayer(playerId);
+
         const award = new Award({
             award: awardInput.award,
             season: awardInput.season,
             player: playerId
         });
-        console.log(award, 'award created')
+
         let createdAward;
         try {
-            const playerAwarded = await checkPlayer(playerId);
             await runInTransaction(async session => {
-                const result = await award.save({session: session});
-                playerAwarded.awards.push(award);
-                await playerAwarded.save({session: session});
-                createdAward = transformData(result);
+                const saveAward = await award.save({session: session});
+
+                player.awards.push(award);
+                await player.save({session: session});
+
+                createdAward = transformData(saveAward);
             });
             return createdAward; 
         } catch (err) {
@@ -36,19 +39,22 @@ module.exports = {
         }
     },
     deleteAward: async ({awardId}) => {
+        const deleteAward = await Award.findById(awardId);
+        if (!deleteAward) {
+            throw new Error('Award does not exist on the database')
+        };
+        const player = await checkPlayer(deleteAward.player);
+
+        let deletedAward;
         try {
-            const checkAward = await Award.findById(awardId);
-            if (!checkAward) {
-                throw new Error('Award does not exist on the database')
-            };
-            let deletedAward;
             await runInTransaction(async session => {
                 await Award.deleteOne({_id: awardId}, {session: session});
-                const playerAwarded = await checkPlayer(checkAward.player);
-                const index = playerAwarded.awards.indexOf(awardId);
-                playerAwarded.awards.splice(index, 1);
-                await playerAwarded.save({session: session});
-                deletedAward = transformData(checkAward); 
+                
+                const awardIndex = player.awards.indexOf(awardId);
+                player.awards.splice(awardIndex, 1);
+                await player.save({session: session});
+
+                deletedAward = transformData(deleteAward); 
             });
             return deletedAward;
         } catch (err) {

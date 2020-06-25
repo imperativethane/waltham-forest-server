@@ -49,10 +49,13 @@ module.exports = {
         try {
             await runInTransaction(async session => {
                 const saveAppearance = await appearance.save({session: session});
+
                 player.appearances.push(appearance);
                 await player.save({session: session});
+
                 leagueResult.appearances.push(appearance);
                 await leagueResult.save({session: session});
+
                 savedAppearance = transformAppearanceData(saveAppearance);
             });
             return savedAppearance;
@@ -62,7 +65,7 @@ module.exports = {
     }, 
     updateAppearance: async ({appearanceId, appearanceInput}) => {
         try {
-            const appearanceToUpdate = await Appearance.findByIdAndUpdate(appearanceId, {
+            const updateAppearance = await Appearance.findByIdAndUpdate(appearanceId, {
                 starter: appearanceInput.starter || false,
                 substitute: appearanceInput.substitute || false,
                 goalsScored: appearanceInput.goalsScored || 0,
@@ -77,29 +80,29 @@ module.exports = {
                 new: true,
                 useFindAndModify: false
             });
-            return transformAppearanceData(appearanceToUpdate);
+            return transformAppearanceData(updateAppearance);
         } catch (err) {
             throw err;
         };
     },
     deleteAppearance: async ({appearanceId}) => {
         const appearance = await checkAppearance(appearanceId);
-        const playerToUpdate = await checkPlayer(appearance.player);
-        const leagueResultToUpdate = await LeagueResults.findById(appearance.leagueResult);
+        const player = await checkPlayer(appearance.player);
+        const leagueResult = await LeagueResults.findById(appearance.leagueResult);
 
         let deletedAppearance;
         try {
             await runInTransaction(async session => {
                 await Appearance.findByIdAndDelete(appearanceId, {session: session});
                 
-                const playerIndex = playerToUpdate.appearances.indexOf(appearance._id);
-                playerToUpdate.appearances.splice(playerIndex, 1);
-                await playerToUpdate.save({session: session});
+                const playerIndex = player.appearances.indexOf(appearance._id);
+                player.appearances.splice(playerIndex, 1);
+                await player.save({session: session});
 
-                if (leagueResultToUpdate) {
-                    const leagueResultIndex = leagueResultToUpdate.appearances.indexOf(appearance._id);
-                    leagueResultToUpdate.appearances.splice(leagueResultIndex, 1);
-                    await leagueResultToUpdate.save({session: session});
+                if (leagueResult) {
+                    const leagueResultIndex = leagueResult.appearances.indexOf(appearance._id);
+                    leagueResult.appearances.splice(leagueResultIndex, 1);
+                    await leagueResult.save({session: session});
                 }
 
                 deletedAppearance = transformAppearanceData(appearance);

@@ -1,7 +1,7 @@
 const LeagueResult = require('../../models/LeagueResults');
-
-const { runInTransaction, checkTeam, transformResultData, deleteLeagueResultData, checkLeagueResult } = require('./merge');
 const Appearance = require('../../models/Appearances');
+
+const { runInTransaction, checkTeam, transformResultData, checkLeagueResult } = require('./merge');
 
 module.exports = {
     leagueResults: async () => {
@@ -33,7 +33,7 @@ module.exports = {
         let createdResult;
         try {
             await runInTransaction(async session => {
-                const savedResult = await result.save({session: session});
+                const saveResult = await result.save({session: session});
 
                 homeTeam.gamesPlayed += 1;
                 awayTeam.gamesPlayed += 1;
@@ -61,11 +61,12 @@ module.exports = {
                 awayTeam.goalDifference += (leagueResultInput.awayScore - leagueResultInput.homeScore);
 
                 homeTeam.leagueResults.push(result);
-                awayTeam.leagueResults.push(result);
-
                 await homeTeam.save({session: session});
+                
+                awayTeam.leagueResults.push(result);
                 await awayTeam.save({session: session});
-                createdResult = transformResultData(savedResult);
+
+                createdResult = transformResultData(saveResult);
             });
             return createdResult;
         } catch (err) {
@@ -76,10 +77,9 @@ module.exports = {
         const leagueResult = await checkLeagueResult(resultId);
         const homeTeam = await checkTeam(leagueResult.homeTeam);
         const awayTeam = await checkTeam(leagueResult.awayTeam);
-
         const appearances = leagueResult.appearances;
-        let deletedResult;
         
+        let deletedResult;
         try {
             await runInTransaction(async session => {
                 await LeagueResult.findByIdAndDelete(resultId);
@@ -116,11 +116,10 @@ module.exports = {
 
                 const homeTeamIndex = homeTeam.leagueResults.indexOf(leagueResult._id);
                 homeTeam.leagueResults.splice(homeTeamIndex, 1);
+                await homeTeam.save({session: session});
 
                 const awayTeamIndex = awayTeam.leagueResults.indexOf(leagueResult._id);
                 awayTeam.leagueResults.splice(awayTeamIndex, 1);
-
-                await homeTeam.save({session: session});
                 await awayTeam.save({session: session});
 
                 deletedResult = transformResultData(leagueResult);

@@ -25,22 +25,20 @@ module.exports = {
             postcode: playerInput.postcode,
             position: playerInput.position,
             photo: playerInput.photo,
-            information: playerInput.information,
-            active: true
+            information: playerInput.information
         })
 
-        let createdPlayer
         try {
-            const result = await player.save();
-            createdPlayer = transformPlayerData(result);
-            return createdPlayer;
+            const savePlayer = await player.save();
+
+            return transformPlayerData(savePlayer);
         } catch (err) {
             throw err;
         }
     },
     deletePlayer: async ({playerId}) => {
-        const playerToDelete = await checkPlayer(playerId);
-        const appearances = playerToDelete.appearances;
+        const deletePlayer = await checkPlayer(playerId);
+        const appearances = deletePlayer.appearances;
 
         let deletedPlayer
         try {
@@ -51,14 +49,15 @@ module.exports = {
                 .cursor()
                 .eachAsync(async (appearance, i) => {
                     const leagueResult = await LeagueResults.findById(appearance.leagueResult);
+
                     const appearanceIndex = leagueResult.appearances.indexOf(appearance._id);
                     leagueResult.appearances.splice(appearanceIndex, 1);
                     await leagueResult.save();
                 });
 
-                await Appearance.deleteMany({_id: {$in: playerToDelete.appearances}}, {session: session});
+                await Appearance.deleteMany({_id: {$in: deletePlayer.appearances}}, {session: session});
 
-                deletedPlayer = transformPlayerData(playerToDelete);
+                deletedPlayer = transformPlayerData(deletePlayer);
             });
             return deletedPlayer;
         } catch (err) {
@@ -83,8 +82,7 @@ module.exports = {
             omitUndefined: true,
             useFindAndModify: false
         });
-            const updatedPlayer = transformPlayerData(updatePlayer);
-            return updatedPlayer;
+        return transformPlayerData(updatePlayer);
         } catch (err) {
             throw err
         };

@@ -15,19 +15,23 @@ module.exports = {
        };
     },
     createHonour: async ({playerId, honourInput}) => {
+        const player = await checkPlayer(playerId);
+        
         const honour = new Honour({
             honour: honourInput.honour,
             season: honourInput.season,
             player: playerId
         });
+
         let createdHonour;
         try {
-            const playerHonoured = await checkPlayer(playerId);
             await runInTransaction(async session => {
-                const result = await honour.save({session: session});
-                playerHonoured.honours.push(honour);
-                await playerHonoured.save({session: session});
-                createdHonour = transformData(result);
+                const saveHonour = await honour.save({session: session});
+                
+                player.honours.push(honour);
+                await player.save({session: session});
+
+                createdHonour = transformData(saveHonour);
             });
             return createdHonour; 
         } catch (err) {
@@ -35,19 +39,24 @@ module.exports = {
         };
     },
     deleteHonour: async ({honourId}) => {
+        const deleteHonour = await Honour.findById(honourId);
+        if (!deleteHonour) {
+            throw new Error('Honour does not exist on the database');
+        };
+
+        const player = checkPlayer(deleteHonour.player);
+
+        let deletedHonour;
         try {
-            const checkHonour = await Honour.findById(honourId);
-            if (!checkHonour) {
-                throw new Error('Honour does not exist on the database');
-            };
-            let deletedHonour;
+
             await runInTransaction(async session => {
                 await Honour.deleteOne({_id: honourId}, {session: session});
-                const playerAwarded = checkPlayer(checkHonour.player);
-                const index = playerAwarded.honours.indexOf(honourId);
-                playerAwarded.honours.splice(index, 1);
-                playerAwarded.save({session: session});
-                deletedHonour = transformData(checkHonour);
+
+                const honourIndex = player.honours.indexOf(honourId);
+                player.honours.splice(honourIndex, 1);
+                player.save({session: session});
+
+                deletedHonour = transformData(deleteHonour);
             });
             return deletedHonour;
         } catch (err) {

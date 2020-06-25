@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const Player = require('../../models/Player');
 const EmergencyContact = require('../../models/EmergencyContact');
 const Award = require('../../models/Awards');
@@ -51,17 +52,7 @@ const player = async playerId => {
     };
 };
 
-const players = async playerIds => {
-    try {
-        const players = await Player.find({_id: {$in: playerIds}});
-        return players.map(player => {
-            return transformPlayerData(player)
-        });
-    } catch (err) {
-        throw err;
-    };
-};
-
+//This function is used to transform results for Awards, Honours and Emergency Contacts.
 const transformData = result => {
     return {
         ...result._doc,
@@ -171,20 +162,20 @@ const checkLeagueResultsForNull = (leagueResultData) => {
     }
 }
 
-const transformAppearanceData = async appearance => {
-    return {
-        ...appearance._doc,
-        leagueResult: checkLeagueResultsForNull(appearance._doc.leagueResult),
-        player: player.bind(this, appearance._doc.player)   
-    };
-};
-
 const checkAppearance = async appearanceId => {
     const appearance = await Appearance.findById(appearanceId);
     if (!appearance) {
         throw new Error('This appearance does not exist on the database.')
     };
     return appearance;
+};
+
+const transformAppearanceData = async appearance => {
+    return {
+        ...appearance._doc,
+        leagueResult: checkLeagueResultsForNull(appearance._doc.leagueResult),
+        player: player.bind(this, appearance._doc.player)   
+    };
 };
 
 const appearances = async appearanceIds => {
@@ -202,18 +193,16 @@ exports.runInTransaction = runInTransaction;
 
 exports.checkPlayer = checkPlayer;
 exports.transformPlayerData = transformPlayerData;
-exports.player = player;
+
 exports.transformData = transformData;
 
 exports.checkLeagueResult = checkLeagueResult;
 exports.transformResultData = transformResultData;
-exports.leagueResult = leagueResult;
-exports.leagueResults = leagueResults;
 
 exports.checkTeam = checkTeam;
 exports.transformTeamData = transformTeamData;
-exports.team = team;
 
-exports.transformAppearanceData = transformAppearanceData;
 exports.checkAppearance = checkAppearance;
+exports.transformAppearanceData = transformAppearanceData;
+
 

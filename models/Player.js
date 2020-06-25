@@ -18,7 +18,8 @@ const playerSchema = new Schema({
     },
     active: {
         type: Boolean,
-        required: true
+        required: true,
+        default: true
     },
     photo: String,
     information: String,
