@@ -21,7 +21,8 @@ module.exports = {
         };
         
         const emergencyContact = new EmergencyContact({
-            name: emergencyContactInput.name,
+            firstName: emergencyContactInput.firstName,
+            surname: emergencyContactInput.surname,
             phoneNumber: emergencyContactInput.phoneNumber,
             relationship: emergencyContactInput.relationship,
             player: playerId
@@ -76,7 +77,8 @@ module.exports = {
 
         try {
             const updateEmergencyContact = await EmergencyContact.findOneAndUpdate({player: playerId}, {
-                name: emergencyContactInput.name,
+                firstName: emergencyContactInput.firstName,
+                surname: emergencyContactInput.surname,
                 phoneNumber: emergencyContactInput.phoneNumber,
                 relationship: emergencyContactInput.relationship
             }, {

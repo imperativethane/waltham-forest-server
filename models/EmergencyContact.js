@@ -5,11 +5,16 @@ const Schema = mongoose.Schema;
 const emergencyContactSchema = new Schema({ 
     player: {
         type: Schema.Types.ObjectId,
-        ref: 'Player'
+        ref: 'Player',
+        required: true
     },
-    name: {
+    firstName: {
         type: String,
         required: true
+    },
+    surname: {
+        type: String,
+         required: true
     },
     phoneNumber: {
         type: String,

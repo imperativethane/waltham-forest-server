@@ -17,16 +17,34 @@ module.exports = {
     },
     createPlayer: async ({playerInput}) => {
         const player = new Player({
-            name: playerInput.name,
-            phoneNumber: playerInput.phoneNumber,
-            email: playerInput.email,
-            addressOne: playerInput.addressOne,
-            addressTwo: playerInput.addressTwo,
-            postcode: playerInput.postcode,
+            firstName: playerInput.firstName,
+            surname: playerInput.surname,
             position: playerInput.position,
-            photo: playerInput.photo,
-            information: playerInput.information
         })
+
+        if (playerInput.phoneNumber.trim() !== "") {
+            player.phoneNumber = playerInput.phoneNumber
+        };
+        
+        if (playerInput.email.trim() !== "") {
+            player.email = playerInput.email
+        };
+
+        if (playerInput.addressOne.trim() !== "") {
+            player.addressOne = playerInput.addressOne
+        };
+
+        if (playerInput.addressTwo.trim() !== "") {
+            player.addressTwo = playerInput.addressTwo
+        };
+
+        if (playerInput.postcode.trim() !== "") {
+            player.postcode = playerInput.postcode
+        };
+
+        if (playerInput.information.trim() !== "") {
+            player.information = playerInput.information
+        };
 
         try {
             const savePlayer = await player.save();
@@ -67,7 +85,8 @@ module.exports = {
     updatePlayer: async ({playerId, playerInput}) => {
         try {
             const updatePlayer = await Player.findOneAndUpdate({_id: playerId}, {
-                name: playerInput.name,
+                firstName: playerInput.firstName,
+                surname: playerInput.surname,
                 phoneNumber: playerInput.phoneNumber,
                 email: playerInput.email,
                 addressOne: playerInput.addressOne,
