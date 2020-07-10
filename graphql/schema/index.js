@@ -14,17 +14,17 @@ module.exports = buildSchema(`
         active: Boolean!
         photo: String
         information: String
+        emergencyContact: EmergencyContact
         honours: [Honour!]
         awards: [Award!]
         appearances: [Appearance]
     }
 
     type EmergencyContact {
-        _id: ID!
-        firstName: String!
-        phoneNumber: String!
+        firstName: String
+        surname: String
+        phoneNumber: String
         relationship: String
-        player: Player!
     }
 
     type Honour {
@@ -186,9 +186,9 @@ module.exports = buildSchema(`
         createPlayer(playerInput: PlayerInput): Player
         deletePlayer(playerId: ID!): Player!
         updatePlayer(playerId: ID!, playerInput: PlayerUpdate): Player!
-        createEmergencyContact(playerId: ID!, emergencyContactInput: EmergencyContactInput): EmergencyContact!
-        deleteEmergencyContact(playerId: ID!): EmergencyContact!
-        updateEmergencyContact(playerId: ID!, emergencyContactInput: EmergencyContactUpdate): EmergencyContact!
+        createEmergencyContact(playerId: ID!, emergencyContactInput: EmergencyContactInput): Player!
+        deleteEmergencyContact(playerId: ID!): Player!
+        updateEmergencyContact(playerId: ID!, emergencyContactInput: EmergencyContactUpdate): Player!
         createHonour(playerId: ID!, honourInput: HonourInput): Honour!
         deleteHonour(honourId: ID!): Honour!
         createAward(playerId: ID!, awardInput: AwardInput): Award!

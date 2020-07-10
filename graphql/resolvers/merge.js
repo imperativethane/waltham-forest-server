@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const Player = require('../../models/Player');
-const EmergencyContact = require('../../models/EmergencyContact');
 const Award = require('../../models/Awards');
 const Honour = require('../../models/Honours');
 const LeagueResult = require('../../models/LeagueResults');
@@ -35,11 +34,10 @@ const checkPlayer = async playerId => {
 
 const transformPlayerData = async player => {
     return {
-        ...player._doc,
-        awards: awards.bind(this, player._doc.awards),
-        honours: honours.bind(this, player._doc.honours),
-        emergencyContact: emergencyContact.bind(this, player._doc.emergencyContact),
-        appearances: appearances.bind(this, player._doc.appearances)
+            ...player._doc,
+            awards: awards.bind(this, player._doc.awards),
+            honours: honours.bind(this, player._doc.honours),
+            appearances: appearances.bind(this, player._doc.appearances)
     }
 }
 
@@ -77,15 +75,6 @@ const honours = async honourIds => {
         return honours.map(honour => {
             return transformData(honour)
         });
-    } catch (err) {
-        throw err;
-    };
-};
-
-const emergencyContact = async emergencyContactId => {
-    try {
-        const emergencyContact = await EmergencyContact.findById(emergencyContactId);
-        return transformData(emergencyContact);
     } catch (err) {
         throw err;
     };

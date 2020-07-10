@@ -28,8 +28,10 @@ const playerSchema = new Schema({
     photo: String,
     information: String,
     emergencyContact: {
-        type: Schema.Types.ObjectId,
-        ref: 'EmergencyContact'
+        firstName: String,
+        surname: String,
+        relationship: String,
+        phoneNumber: String
     },
     honours: [
         {

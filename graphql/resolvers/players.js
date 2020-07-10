@@ -105,5 +105,62 @@ module.exports = {
         } catch (err) {
             throw err
         };
-    }
+    },
+    createEmergencyContact: async ({playerId, emergencyContactInput}) => {
+        const player = await checkPlayer(playerId);
+
+        player.emergencyContact.firstName = emergencyContactInput.firstName;
+        player.emergencyContact.surname = emergencyContactInput.surname;
+        player.emergencyContact.phoneNumber = emergencyContactInput.phoneNumber;
+        player.emergencyContact.relationship = emergencyContactInput.relationship;
+
+        let createdEmergencyContact;
+        try {
+            const saveEmergencyContact = await player.save();
+
+            createdEmergencyContact = transformPlayerData(saveEmergencyContact);
+
+            return createdEmergencyContact;
+        } catch (err) {
+            throw err;
+        };
+    },
+    deleteEmergencyContact: async ({playerId}) => {
+        const player = await checkPlayer(playerId);
+
+        player.emergencyContact.firstName = null;
+        player.emergencyContact.surname = null;
+        player.emergencyContact.relationship = null;
+        player.emergencyContact.phoneNumber = null;
+
+        let deletedEmergencyContact;
+        try {
+            const saveEmergencyContact = await player.save();
+
+            deletedEmergencyContact = transformPlayerData(saveEmergencyContact);
+
+            return deletedEmergencyContact;
+        } catch (err) {
+            throw err;
+        };  
+    },
+    updateEmergencyContact: async ({emergencyContactInput, playerId}) => {
+        const player = await checkPlayer(playerId);
+        
+        player.emergencyContact.firstName = emergencyContactInput.firstName;
+        player.emergencyContact.surname = emergencyContactInput.surname;
+        player.emergencyContact.phoneNumber = emergencyContactInput.phoneNumber;
+        player.emergencyContact.relationship = emergencyContactInput.relationship;
+
+        let updatedEmergencyContact;
+        try {
+            const saveEmergencyContact = await player.save();
+
+            updatedEmergencyContact = transformPlayerData(saveEmergencyContact);
+
+            return updatedEmergencyContact;
+        } catch (err) {
+            throw err;
+        };
+    }   
 }

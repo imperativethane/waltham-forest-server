@@ -1,5 +1,4 @@
 const playerResolver = require('./players');
-const emergencyContactResolver = require('./emergencyContact');
 const honoursResolver = require('./honours');
 const awardsResolver = require('./awards');
 const teamsResolver = require('./teams');
@@ -8,7 +7,6 @@ const appearancesResolver = require('./appearances');
 
 const rootResolver = {
     ...playerResolver,
-    ...emergencyContactResolver,
     ...honoursResolver,
     ...awardsResolver,
     ...teamsResolver,
