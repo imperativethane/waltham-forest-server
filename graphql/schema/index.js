@@ -108,9 +108,9 @@ module.exports = buildSchema(`
     }
 
     input EmergencyContactInput {
-        firstName: String!
-        surname: String!
-        phoneNumber: String!
+        firstName: String
+        surname: String
+        phoneNumber: String
         relationship: String
     }
 

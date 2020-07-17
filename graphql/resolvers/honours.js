@@ -44,11 +44,10 @@ module.exports = {
             throw new Error('Honour does not exist on the database');
         };
 
-        const player = checkPlayer(deleteHonour.player);
+        const player = await checkPlayer(deleteHonour.player);
 
         let deletedHonour;
         try {
-
             await runInTransaction(async session => {
                 await Honour.deleteOne({_id: honourId}, {session: session});
 

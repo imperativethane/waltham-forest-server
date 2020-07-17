@@ -28,10 +28,22 @@ const playerSchema = new Schema({
     photo: String,
     information: String,
     emergencyContact: {
-        firstName: String,
-        surname: String,
-        relationship: String,
-        phoneNumber: String
+        firstName: {
+            type: String,
+            default: ""
+        },
+        surname: {
+            type: String,
+            default: ""
+        },
+        relationship: {
+            type: String,
+            default: ""
+        },
+        phoneNumber: {
+            type: String,
+            default: ""
+        }
     },
     honours: [
         {
